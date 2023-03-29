@@ -1,1 +1,1 @@
-My JSC370 Final Project Website 
+This is my JSC370 Final Project website home. The website is online at https://jennylin331431.github.io/jsc370-website/ 
