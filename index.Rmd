@@ -1,6 +1,6 @@
 ---
 title: "JSC370 Final Project"
-author: "Tsai-Ni Lin"
+# author: "Tsai-Ni Lin"
 output: 
     html_document:
         toc: TRUE
@@ -8,3 +8,86 @@ output:
 ---
 
 This is my JSC370 Final Project website.
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(cache=TRUE, echo=FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r,echo=FALSE}
+library(tidyverse)
+library(plotly)
+source('process_COVID_data.R')
+```
+```{r}
+p1_scatter <- cv_states_today %>% 
+  plot_ly(x = ~pop_density, y = ~deathsper100k,
+          type = 'scatter', mode = 'markers', color = ~state,
+          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
+          hoverinfo = 'text',
+          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
+                        deathsper100k, sep=""), sep = "<br>")) %>%
+  layout(title = "Population-normalized COVID-19 deaths vs. population density",
+                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
+         hovermode = "compare")
+
+# filter out "District of Columbia"
+cv_states_today_scatter <- cv_states_today %>% filter(state!="District of Columbia")
+
+p2_scatter <- cv_states_today_scatter %>% 
+  plot_ly(x = ~pop_density, y = ~deathsper100k,
+          type = 'scatter', mode = 'markers', color = ~state,
+          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
+          hoverinfo = 'text',
+          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
+                        deathsper100k, sep=""), sep = "<br>")) %>%
+  layout(title = "Population-normalized COVID-19 deaths vs. population density",
+                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
+         hovermode = "compare")
+```
+
+
+```{r}
+## CREATE 2 figures of our own 
+plt_eda_new_cases <- ggplot(cv_states, aes(x = date, y = new_cases, colour = state)) +
+  geom_line() + 
+  theme_minimal()
+
+
+
+plt_eda_new_deaths <- ggplot(cv_states, aes(x = date, y = new_deaths, colour = state)) +
+  geom_line() + 
+  theme_minimal()
+
+
+```
+
+## Showing plots {.tabset}
+
+### Figure 1
+
+```{r echo=FALSE}
+p1_scatter
+```
+
+### Figure 2
+
+```{r echo=FALSE}
+p2_scatter
+```
+
+### Figure 3
+
+```{r}
+ggplotly(plt_eda_new_cases)
+
+```
+
+### Figure 4
+
+```{r}
+ggplotly(plt_eda_new_deaths)
+
+```
+
+{-}
