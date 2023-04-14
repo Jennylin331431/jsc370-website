@@ -64,7 +64,7 @@ plt_eda_new_deaths <- ggplot(cv_states, aes(x = date, y = new_deaths, colour = s
 
 ## Showing plots {.tabset}
 
-### Figure 1
+### Figure 1    
 
 ```{r echo=FALSE}
 p1_scatter

@@ -5,6 +5,8 @@ navbar:
   left:
     - text: "Home"
       href: index.html
+    - text: "HW5"
+      href: hw5.html
 output:
   html_document:
     theme: cosmo
