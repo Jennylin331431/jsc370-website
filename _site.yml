@@ -1,12 +1,17 @@
-name: "my-website"
+name: "JSC370 Final Project"
 output_dir: "."
 navbar:
-  title: "My Website"
+  title: "JSC370 Final Project"
   left:
     - text: "Home"
       href: index.html
-    - text: "HW5"
-      href: hw5.html
+    - text: "Visualizations"
+      href: final_project_visuals.html
 output:
   html_document:
-    theme: cosmo
+    theme: simplex
+    include:
+      after_body: footer.html
+    css: styles.css
+    
+    

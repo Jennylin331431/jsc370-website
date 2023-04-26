@@ -1,0 +1,637 @@
+---
+title: "JSC370 Midterm"
+date: "2023-03-10"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+
+
+```{r setup, include=FALSE, echo = FALSE, warning=FALSE,message = FALSE }
+knitr::opts_chunk$set(echo = FALSE, results='hide', warning=FALSE, message = FALSE)
+```
+
+# Introduction 
+
+
+Happiness is a viral topic in the modern world, as it is ultimately what everyone longs for. However, according to the World Health Organization, 1 in 8 people suffer from mental disorders, and there has been a 25% increase in depression after COVID-19. With this, I am prompted to know more about how happiness has progressed overtime and the factors that influence it. For instance, in the academic researcher, Satoshi Kanazawa’s paper, “Sunshine on my shoulders makes me happy... especially if I’m less intelligent: how sunlight and intelligence affect happiness in modern society”, he discovers that darkness induces fear and anxiety while exposure to sunlight increases happiness. Not only do I want to explore the effect of sunshine hours, I am also interested in other factors, such as economic status and freedom in a country.
+
+
+Perhaps, with this report, I hope to provide insights to government policies or personal actions that can help improve the well-being of individuals. Therefore, combining these motivations, I hope to look at happiness from three different aspects, physiological needs (economic status), regional factors (sunshine), and emotional needs (freedom, love). My question of interest is "Do people get happier overtime? Does economic status, freedom to make life choices, and sunshine hours affect people's happiness?".
+
+
+My first data set is retrieved from a renown source, [World Happiness Report](https://worldhappiness.report/), which is a report written by members of the United Nations Sustainable Development Solutions Network. It makes use of the "Gallup World Poll", a global survey data that consists of over 100 questions including regional specific questions. The report provides insights in how people evaluate their own lives by country. The data set I will be using has records starting from 2005 to 2021, where the happiness score - the national average response to the question of measuring oneself on life ladders - is recorded for more than 150 countries worldwide. Other variables I will be using from the data set are log GDP per capita obtained from World Development Indicators, and the freedom to make life choices and perceptions of corruption, results obtained from Gallup World Poll.
+
+
+The second data set is retrieved from [Wikipedia](https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration), which contains a list of sunshine hours for 391 cities, including the yearly and monthly duration. Records of this data set are compiled from numerous sources.
+
+
+
+
+```{r, message=FALSE}
+#libraries
+library(rvest)
+library(tidyverse)
+library(dplyr)
+library(ggpubr)
+library(ggplot2)
+library(magrittr)
+library(kableExtra)
+library(scales)
+```
+
+```{r}
+#scrape sunshine data
+
+
+# Specify the url for desired website to be scraped
+url <- 'https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration'
+
+# Read the HTML code from the website
+webpage <- read_html(url)
+
+# Use CSS selectors to scrape the table
+table <- html_nodes(webpage,'table.wikitable')
+
+# Converting the table to a data frame
+table <- html_table(table, header = TRUE)
+
+sunshine_data <- table %>%
+  bind_rows() %>%
+  as_tibble()
+
+```
+
+# Methods
+
+
+## Data Collection 
+The happiness data set is downloaded from the [World Happiness Report](https://worldhappiness.report/ed/2022/#appendices-and-data) website. The process is as easy as a simple download for “Data for Table 2.1”, which is downloaded as an excel file. I later converted to a csv myself. 
+
+
+The second data set uses the "rvest" package from R to perform web scraping from Wikipedia; it uses the URL to read HTML code and CSS selectors to subsequently scrape the table.
+
+## Data Wrangling & Cleaning
+
+
+This is a sample table of the sunshine data set; it contains the sunshine hours for 391 cities. 
+
+```{r, results = 'show'}
+#display raw sunshine data
+head(sunshine_data,5) %>% 
+  knitr::kable(caption = "Table 1: Data from Wikipedia Sunshine Hours") %>% 
+  kable_styling()
+```
+
+```{r}
+#check for null values 
+sum(is.na(sunshine_data))
+```
+I checked for null values in the sunshine data set and discovered that the data set is free of null values. I then converted the yearly sunshine duration from characters to numeric data. I also checked for abnormal values. For instance, I checked the locations of maximum and minimum yearly sunshine in the data set, which appear in Yuma, United States, and Tórshavn, Faroe Islands, respectively. I validated that both of these observations are accurate. To prepare for merging, since sunshine hours are reported by cities, while our happiness data set is reported in countries, I created a new data frame that records mean yearly sunshine, maximum yearly sunshine, minimum yearly sunshine for each country. 
+
+
+
+```{r}
+#convert year column to numeric 
+sunshine_data$Year = gsub(",", "", sunshine_data$Year)
+sunshine_data$Year = as.numeric((sunshine_data$Year))
+```
+
+```{r}
+#check which countries have max and min sunshine hours
+
+sunshine_data[which.max(sunshine_data$Year),]
+
+
+sunshine_data[which.min(sunshine_data$Year),]
+
+```
+
+```{r}
+#create average, min, max of sunshine hours in each country
+sunshine_summary <- sunshine_data %>% group_by(Country) %>%
+summarise(average_sunshine = mean(Year, na.rm = TRUE),
+              max_sunshine = max(Year, na.rm = TRUE),
+              min_sunshine = min(Year, na.rm = TRUE), n = n())
+```
+
+
+```{r}
+#load happiness score data
+happiness_data<- read.csv('DataPanelWHR2021C2.csv')
+
+# summary of raw happiness data
+summary(happiness_data)
+```
+Below is a sample table of the happiness data set. 
+
+```{r, results = 'show'}
+#display sample of happiness data
+head(happiness_data,5) %>% 
+  knitr::kable(caption = "Table 2: Data from World Happiness Report") %>% 
+  kable_styling()
+```
+```{r}
+#count null values
+sum(is.na(happiness_data))
+
+#remove null values
+
+#original number of observations 
+nrow(happiness_data)
+
+#remove null values
+
+happiness_data <- happiness_data %>% drop_na(Log.GDP.per.capita, Freedom.to.make.life.choices)
+
+# number of observations after removal
+nrow(happiness_data)
+```
+
+
+
+
+
+
+
+```{r}
+#Change observation country name to match in both data sets 
+sunshine_data <- sunshine_data  %>%
+  mutate(Country.name = case_when(Country == 'Congo' & 
+                                    City == "Kinshasa" ~ "Congo (Kinshasa)", 
+                                  Country == 'Congo' 
+                                  & City == "Brazzaville" ~ "Congo (Brazzaville)", 
+                                  Country == "China" & City == 'Hong Kong' ~ "Hong Kong S.A.R. of China",
+                                  Country == "United ArabEmirates" ~ "United Arab Emirates",Country == 'Taiwan' ~ "Taiwan Province of China",               
+                         TRUE ~ Country))
+
+#create average, min, max of sunshine hours in each country
+sunshine_summary <- sunshine_data %>% group_by(Country.name) %>%
+summarise(average_sunshine = mean(Year, na.rm = TRUE),
+              max_sunshine = max(Year, na.rm = TRUE),
+              min_sunshine = min(Year, na.rm = TRUE), n = n())
+
+sunshine_summary
+```
+
+There are 36 NA values in log GDP per capita and 32 NA values in the "Freedom.to.make.life.choices" variable, which I removed. 68 observations were removed in total and 1881 observations remaining. The happiness dataset is very well compiled; the data set is free from abnormal values. As an extra validation, I checked whether freedom scores are between 0 and 1 and whether the GDP is between an acceptable range. I also checked whether there were distinct or duplicated happiness scores for the same country in the same year.  
+
+Before merging the two data sets, I checked the number of country names that are found in both data sets. I recognized that some countries, such as Hong Kong and Taiwan are named differently, so I changed these names in the sunshine data to match the names in the happiness data.  
+
+
+## Data Merging
+
+After merging the data set, I discovered that there are still around 30 countries out of 161 countries which do not have sunshine hours reported. After carefully examining these countries, I recognized that they are less renown countries in the world; therefore, I decided to safely remove them from the merged data set. I also removed the columns that are not my variables of my interest, such as generosity, social support, positive effect ... etc.  I renamed the columns to a more accessible format as well. My final merged data set consists of 1553 observations, and below is a sample table. 
+
+```{r}
+#merge the dataset
+data <- merge(happiness_data, sunshine_summary,  by = "Country.name", all.x = TRUE)
+summary(data)
+```
+
+```{r}
+#countries without sunshine hours
+length(unique(data[which(is.na(data$average_sunshine)),]$Country.name))
+
+#number of countries in the dataset
+length(unique(data$Country.name))
+```
+
+
+```{r}
+#check for null values again 
+#remove countries with null values
+data <- data %>% drop_na(average_sunshine)
+sum(is.na(data))
+```
+
+```{r}
+#remove not needed columns 
+data <- data[c(1, 2, 3, 4, 7, 12, 13, 14)]
+
+
+# rename columns 
+colnames(data) <- c("Country","Year","Happiness", "Log_GDP","Freedom","Avg_sunshine", "Max_sunshine", "Min_sunshine")
+```
+
+```{r}
+#check whether Country and year only correspond to one observation 
+df_dups <- data[c("Country", "Year")]
+
+#should be equal
+nrow(data) == nrow(data[!duplicated(df_dups),]) 
+
+```
+
+
+```{r, results = 'show'}
+
+# sample table of merged data set
+head(data, 5) %>% 
+  knitr::kable(caption = "Table 3: Merged Data from World Happiness Report and Sunshine Hours Data") %>% 
+  kable_styling()
+```
+
+
+
+```{r}
+saveRDS(data, "midterm_data.rds")
+```
+
+## Data Exploration
+
+I used various R functions, such as summary() and str(), to explore the variables within my data set. Below is a summary of all the variables in the data set. 
+
+```{r}
+#summary of final merged data
+summary(data)
+```
+```{r}
+#look at final merged data
+
+str(data)
+```
+
+
+
+
+```{r}
+#create variable summary table for data set 
+
+summary_var <- data.frame(
+  
+  #variable names
+  Variable_Names = c("Country", "Year", "Happiness", "Log_GDP", "Freedom", "Avg_sunshine", "Max_sunshine", "Min_sunshine" ),
+  type = c("chr", "int", "num","num","num","num","num","num"),
+  
+  #q1
+  q1 = c("",  round(quantile(data$Year, probs =0.25, na.rm = TRUE),3), round(quantile(data$Happiness, probs =0.25, na.rm = TRUE),3),round(quantile(data$Log_GDP, probs =0.25, na.rm = TRUE),3), round(quantile(data$Freedom, probs =0.25, na.rm = TRUE),3), round(quantile(data$Avg_sunshine, probs =0.25, na.rm = TRUE),3), round(quantile(data$Max_sunshine, probs =0.25, na.rm = TRUE),3), round(quantile(data$Min_sunshine, probs =0.25, na.rm = TRUE),3)),
+ 
+  #median
+  median =  c("", round(quantile(data$Year, probs =0.5, na.rm = TRUE),3), round(quantile(data$Happiness, probs =0.5, na.rm = TRUE),3),round(quantile(data$Log_GDP, probs =0.5, na.rm = TRUE),3), round(quantile(data$Freedom, probs =0.5, na.rm = TRUE),3), round(quantile(data$Avg_sunshine, probs =0.5, na.rm = TRUE),3), round(quantile(data$Max_sunshine, probs =0.5, na.rm = TRUE),3), round(quantile(data$Min_sunshine, probs =0.5, na.rm = TRUE),3)), 
+
+  #q3  
+ q3 =  c("", round(quantile(data$Year, probs =0.75, na.rm = TRUE),3), round(quantile(data$Happiness, probs =0.75, na.rm = TRUE),3),round(quantile(data$Log_GDP, probs =0.75, na.rm = TRUE),3), round(quantile(data$Freedom, probs =0.75, na.rm = TRUE),3), round(quantile(data$Avg_sunshine, probs =0.75, na.rm = TRUE),3), round(quantile(data$Max_sunshine, probs =0.75, na.rm = TRUE),3), round(quantile(data$Min_sunshine, probs =0.75, na.rm = TRUE),3)), 
+   
+ #mean
+  mean = c("", round(mean(data$Year, na.rm = TRUE), 0), round(mean(data$Happiness, na.rm = TRUE),3), round(mean(data$Log_GDP, na.rm = TRUE),3), round(mean(data$Freedom, na.rm = TRUE),3), round(mean(data$Avg_sunshine, na.rm = TRUE),3), round(mean(data$Max_sunshine, na.rm = TRUE),3), round(mean(data$Min_sunshine, na.rm = TRUE),3)),
+ 
+ #max
+  max = c("", round(max(data$Year, na.rm = TRUE),3), round(max(data$Happiness, na.rm = TRUE),3), round(max(data$Log_GDP, na.rm = TRUE),3), round(max(data$Freedom, na.rm = TRUE),3), round(max(data$Avg_sunshine, na.rm = TRUE),3), round(max(data$Max_sunshine, na.rm = TRUE),3), round(max(data$Min_sunshine, na.rm = TRUE),3)),
+  
+ #min
+ min = c("", round(min(data$Year, na.rm = TRUE),3), round(min(data$Happiness, na.rm = TRUE),3), round(min(data$Log_GDP, na.rm = TRUE),3), round(min(data$Freedom, na.rm = TRUE),3), round(min(data$Avg_sunshine, na.rm = TRUE),3), round(min(data$Max_sunshine, na.rm = TRUE),3), round(min(data$Min_sunshine, na.rm = TRUE),3)))
+
+summary_var
+
+```
+
+
+
+```{r, results = 'show'}
+#display variable summary table
+summary_var %>% 
+  setNames(c("Variable Names", "Type", "Q1", "Median", "Q3", "Mean", "Maximum", "Minimum")) %>%
+  knitr::kable(caption = "Table 4: Summary Statistics for Variables in Merged Data Set") %>% 
+  kable_styling()
+
+```
+
+I checked the distributions of each variable by plotting the respective histograms. I recognized that freedom is left-skewed, which means that the data is a better representation for countries with more freedom. Happiness score is normally distributed, which a good indication that one of the assumptions for linear regression is satisfied. As for average sunshine hours, it holds a bimodal distribution with the two peaks at around 1800 and 3000 hours. There are two explanations for this: countries with 1800 and 3000 yearly sunshine duration participate in the happiness report for a lot of the years, or there are more countries with 1800 and 3000 yearly sunshine hours. 
+
+
+```{r}
+#distribution of variables
+par(mfrow = c(2, 2))
+hist(data$Log_GDP, xlab = 'Log GDP per Capita', main = 'Distribution of Log GDP per Capita')  
+hist(data$Avg_sunshine, xlab = 'Average Yearly Sunshine (hrs)', main = 'Distribution of Average Yearly Sunshine')  
+hist(data$Freedom, xlab = 'Freedom Score', main = 'Distribution of Freedom Score')  
+hist(data$Happiness, xlab = 'Happiness Score', main = 'Distribution of Happiness Score')  
+
+```
+
+I also used the pairs plot function in R to explore the relationship between each of the variables and detect for possible linear relationships. As a result, I recognized that there are potential linear relationships between the variables Happiness and log GDP in particular.
+
+```{r}
+# pair plot
+
+panel.points<-function(x,y)
+{
+  points(x,y,cex=0.2)
+}
+
+
+pairs(data[,3:6],upper.panel=panel.points, main = "Pairs Plot: Happiness, Log GDP, Freedom, and Average Sunshine Hours", cex.main = 1)
+```
+
+
+```{r}
+# create table of number of countries reported for each year
+country_records <- data %>% group_by(Country) %>% mutate(record_count = n())
+Year_records <- data %>% group_by(Year) %>% summarise(count = n())
+t <- t(Year_records)
+rownames(t) <- c("Year", "Countries Reported")
+                               
+```
+
+In addition, I realized that not every country was recorded the same number of times in the data set. This may cause a biased resultof the mean GDP or happiness score for each year, and this is something to keep in mind, which I will address later. 
+
+```{r, results = 'show'}
+#display table of number of countries reported for each year
+t %>% 
+  setNames(c("Year", "Countries Reported")) %>%
+  knitr::kable(caption = "Table 5: Number of Countries Participated in Happiness Report Each Year") %>% 
+  kable_styling()
+```
+
+
+# Preliminary Analysis
+
+### 1. 
+
+```{r}
+# yearly statistics of gdp, happiness, freedom (didn't put in final report)
+sum0<- data %>% group_by(Year) %>% summarise(mean_GDP = mean(Log_GDP, na.rm = TRUE),
+                                               max_GDP = max(Log_GDP, na.rm = TRUE), 
+                                               min_GDP = min(Log_GDP, na.rm = TRUE), 
+                                            mean_Happiness = mean(Happiness, na.rm = TRUE),
+                                               max_Happiness = max(Happiness, na.rm = TRUE), 
+                                               min_Happiness = min(Happiness, na.rm = TRUE), 
+                                              mean_freedom = mean(Freedom, na.rm = TRUE), 
+                                               max_freedom = max(Freedom, na.rm = TRUE), 
+                                               min_freedom = min(Freedom, na.rm = TRUE), 
+                                               countries = n_distinct(Country, na.rm = TRUE),
+                                                n = n(),
+                                              )
+sum0
+```
+
+
+
+
+```{r}
+
+#records after 2010
+country_records2 <- data %>%  filter(Year >= 2010) %>% group_by(Country) %>% mutate(record_count = n())
+
+#maximum amount of time country was reported
+max_count <- max(country_records2$record_count)
+
+#filter out countries that don't appear for "max count of times"  after 2010
+freq_countries <- country_records2 %>% filter(record_count >= max_count) 
+
+
+#yearly mean happiness in selected countries
+main_plt_data <- freq_countries %>% group_by(Year) %>%summarise(mean_happiness = mean(Happiness), level = "Overall", n=n())
+
+
+#mean of gdp, sunshine, and freedom
+mean_gdp = mean(freq_countries$Log_GDP)
+mean_sunshine = mean(freq_countries$Avg_sunshine)
+mean_freedom = mean(freq_countries$Freedom)
+
+#create income category 
+levels_countries_income <- freq_countries %>% mutate(level = case_when(Log_GDP >= mean_gdp 
+                                                   ~ "Income Above Average", TRUE ~"Income Below Average" )) 
+
+#calculate the mean happiness in each year by income category
+plt_income <- levels_countries_income %>% group_by(Year, level) %>% summarise(mean_happiness = mean(Happiness), n=n())
+
+
+
+#create sunshine category 
+levels_countries_sunshine <- freq_countries %>% mutate(level = case_when(Avg_sunshine >= mean_sunshine 
+                                                   ~ "Sunshine Above Average", TRUE ~"Sunshine Below Average" )) 
+
+
+
+#calculate the mean happiness score in each year by sunshine category
+plt_sunshine <- levels_countries_sunshine %>% group_by(Year, level) %>% summarise(mean_happiness = mean(Happiness), n=n())
+
+
+plt_sunshine
+# create freedom category
+levels_countries_freedom <- freq_countries %>% mutate(level = case_when(Freedom >= mean_freedom 
+                                                   ~ "Freedom Above Average", TRUE ~"Freedom Below Average" )) 
+
+#calculate the mean happiness score in each year by freedom category
+plt_freedom <- levels_countries_freedom %>% group_by(Year, level) %>% summarise(mean_happiness = mean(Happiness), n=n())
+
+
+#combine the data frames
+time_plot <- bind_rows(plt_income, plt_sunshine, plt_freedom, main_plt_data)
+
+```
+
+
+```{r}
+#plot time series plot
+ p2 <- ggplot(data=time_plot, aes(x=Year,y = mean_happiness, color = level)) +
+geom_line() + 
+  geom_point(data=time_plot, aes(x=Year,y = mean_happiness)) + guides(fill=guide_legend(title="Country Category")) + 
+   labs(y = "Mean Happiness Score", x = "Year", title = "Mean Happiness Score Overtime for Countries recorded every year bewteen 2010-2020") + theme(plot.title = element_text(size=10))
+
+#adjust x-axis scales
+ p2+ 
+scale_x_continuous(breaks= c(2010, 2015, 2020))
+```
+
+**Explanation:**
+
+As mentioned previously, not every country is recorded every year between 2005 to 2020. Therefore, if we analyze the mean happiness score progression over time using all observations, there would be inaccurate results. For instance, the mean happiness score may increase because a country with high happiness score was added in the later years. Therefore, I chose to only report the mean happiness score for countries that participated in the Happiness report every year between 2010 to 2020. Furthermore, I separated the trend for mean happiness score into categories based on income levels (above or below average), freedom levels (above or below average), and sunshine hours (above or below average). An overall trend in mean happiness score for these countries without categorizing is also displayed. 
+
+As a result, we can inspect that there is no specific trend in the happiness score overtime.The overall trend is rather horizontal with small ups and downs; there is not much change over time. Also, for some categories, happiness score increases, while it decreases in other categories. For instance, countries with freedom scores above average, the mean happiness score decreases, while in the countries of sunshine hours below average, the happiness score decreases. Moreover, an interesting observation I found is that between 2011 - 2014, the mean happiness score in most categories decreases; however, for the category of freedom level above average, the mean score significantly increases.
+
+Although these are simply trends observed in the countries that were reported every year, it is still a good indication of how happiness has progressed overtime. In fact, we can still gain brief insights regarding the effects of income, freedom, and sunshine overtime. As we can see, countries with income below the average have the lowest mean happiness score in every year, followed by countries with income below the average and sunshine duration above average. Meanwhile, countries with income above the average have the highest mean happiness score overtime, followed by freedom above averaged countries. This allows us to suggest that high income and freedom give rise to the happiness score.
+
+ 
+
+
+### 2.
+
+
+```{r}
+#calculate mean score for each year
+data2 <- data %>% group_by(Year) %>% mutate(mean_happiness_score = mean(Happiness, na.rm = TRUE))
+
+# count number of times happiness score is above average for each country
+data2 <- data2 %>% group_by(Country) %>% mutate(count_above_average = sum(Happiness >= mean_happiness_score),
+                                              country_appear = n())
+
+# create category of frequency of happiness score above average for each country
+data2 <- data2 %>% mutate(above_average = case_when(count_above_average/country_appear >= 2/3 
+                                                   ~ "at least 2/3", 
+                                                   count_above_average/country_appear < 1/3 ~ "less than 1/3",
+                                                TRUE ~ "1/3 to 2/3"))
+
+```
+
+```{r}
+#create table that groups by the frequency of happiness score above average for each country
+pre2<- data2 %>% group_by(above_average) %>% summarise(mean_GDP = mean(Log_GDP, na.rm = TRUE),
+                                               max_GDP = max(Log_GDP, na.rm = TRUE), 
+                                               min_GDP = min(Log_GDP, na.rm = TRUE), 
+                                               mean_sunshine = mean(Avg_sunshine, na.rm = TRUE),
+                                               max_sunshine = max(Max_sunshine, na.rm = TRUE), 
+                                               min_sunshine = min(Min_sunshine, na.rm = TRUE),
+                                              mean_freedom = mean(Freedom, na.rm = TRUE), 
+                                               max_freedom = max(Freedom, na.rm = TRUE), 
+                                               min_freedom = min(Freedom, na.rm = TRUE), 
+                                               countries = n_distinct(Country, na.rm = TRUE)
+                                               )
+```
+
+```{r, results = 'show'}
+#display table that groups by the frequency of happiness score above average for each country
+pre2 %>% 
+  setNames(c("Happiness Frequency", "Average Log GDP", "Max Log GDP", "Min Log GDP", "Average Sunshine Hours", "Max Sunshine Hours", "Min Sunshine Hours","Average Freedom Score", "Max Freedom Score", "Min Freedom Score", "# of Countries")) %>%
+  knitr::kable( caption = "Table 6: Summary of GDP, Sunshine Hours, Freedom Score based on Happiness Frequency Grouping") %>% 
+  kable_styling()
+```
+
+**Explanation:**
+
+This is a summary table done by categorizing countries by their levels of happiness. I define three categories for the countries based on the frequency of their happiness scores being greater or equal to the mean happiness score of the corresponding year. There are three groups in total: less than $\frac{1}{3}$, $\frac{1}{3}$ to $\frac{2}{3}$ , and at least $\frac{2}{3}$. The categories can be interpreted as follows: if a country appears in the less than $\frac{1}{3}$ category, this means that out of all the years the country participated in the World Happiness Report, less than $\frac{1}{3}$ of their records yielded a happiness scores higher or equal to the mean happiness of that same year. 
+
+As a result of the summary table, the category of "at least $\frac{2}{3}$" yields the highest average log GDP and average freedom score, whereas the highest average sunshine appears in the "less than $\frac{1}{3}$" category. Also, the maximum log GDP occurs in countries with at least $\frac{2}{3}$ being happy and the minimum occurs in the "less than $\frac{1}{3}$" category. This suggests that countries with higher GDP have higher happiness. A similar result applies on the factor freedom, which suggests that countries with higher freedom lead to more happiness. On the contrary, the category of "less than $\frac{1}{3}$" yields the maximum sunshine hours, while the minimum occurs in the "at least $\frac{2}{3}$" category. This allows us to say that sunshine hours doesn't increase happiness, but perhaps decreases. 
+
+Here, however, we can see there is an uneven distribution of categories. The $\frac{1}{3}$ to $\frac{2}{3}$ category only has 11 countries, whereas the other two groups have over 50. We may need to consider potential bias in further analysis using this table due to the under population of the  $\frac{1}{3}$ to $\frac{2}{3}$ category. 
+
+As a note, I used the maximum of maximum yearly sunshine and minimum of minimum yearly sunshine to record the maximum and minimum sunshine hours for each category, rather than the maximum and minimum values of average yearly sunshine. 
+
+
+
+### 3.
+
+
+```{r}
+#create income level
+data3 <- data %>% mutate(income_level = case_when((Log_GDP <= 
+                                                   quantile(Log_GDP, probs =0.25, na.rm = TRUE)) ~ "Low",
+                                                 (quantile(Log_GDP, probs =0.25, na.rm = TRUE) < Log_GDP & Log_GDP<= 
+                                                   quantile(Log_GDP, probs =0.75, na.rm = TRUE)) ~ "Medium",
+                                                TRUE ~ "High"))
+
+
+#create sunshine level
+data3 <- data3 %>% mutate(sunshine_level = case_when((Avg_sunshine < 
+                                                   quantile(data$Avg_sunshine, probs =0.5, na.rm = TRUE)) ~ "Low Sunshine Level",TRUE ~ "High Sunshine Level"))
+
+
+#create freedom level
+data3 <- data3 %>% mutate(freedom_level = case_when((Freedom < 
+                                                   quantile(data$Freedom, probs =0.5, na.rm = TRUE)) ~ "Low Freedom Level",TRUE ~ "High Freedom Level"))
+
+```
+```{r}
+#income level plt                                              
+l1 <- ggplot(data = data3, mapping = aes(x = income_level, y = Happiness)) + 
+geom_boxplot(fill="pink")+ labs(x = "Income Level", y= "Happiness Score") 
+
+#sunshine_level plt                                              
+l2 <- ggplot(data = data3, mapping = aes(x = sunshine_level, y = Happiness)) + 
+geom_boxplot(fill="mediumpurple1") + labs(x = "Sunshine Level", y= "Happiness Score") + scale_x_discrete(labels=c("High Sunshine Level" = "High", "Low Sunshine Level" = "Low"))
+
+
+#freedom level plt                                              
+l3 <- ggplot(data = data3, mapping = aes(x = freedom_level, y = Happiness)) + 
+geom_boxplot(fill="lavenderblush1") + labs(x = "Freedom Level", y= "Happiness Score") + scale_x_discrete(labels=c("High Freedom Level" = "High", "Low Freedom Level" = "Low"))
+
+
+#combine the three plots
+ggarrange(l1, l2, l3, 
+          ncol = 2, nrow = 2) + labs(title = "Distribution of Happiness Score based on Sunshine Level, Freedom Level, and Income Level (Individually)")+ theme(plot.title = element_text(size=10)) 
+```
+
+
+```{r}
+#create boxplot of happiness score that groups by sunshine, freedom, and income level
+level_plt <- ggplot(data = data3, mapping = aes(fill = income_level, y = Happiness)) + 
+geom_boxplot() + facet_wrap(~sunshine_level + freedom_level) + labs(x = "Income Level", y= "Happiness Score", title = "Distribution of Happiness Score based on Sunshine Level, Freedom Level, and Income Level (Combined)") + theme(plot.title = element_text(size=10)) + scale_fill_manual(values=c("purple",
+                               "hotpink1", "yellow"
+                               )) + guides(fill=guide_legend(title="Income Level"))
+
+
+level_plt
+```
+
+**Explanation:**
+
+Income is separated into three levels: high, medium, and low. A "low" income indicates the log GDP per capita is less than or equal to the first quantile of log GDP per capita, whereas "medium" indicates that it lies between the first and third quantile, and "high" when it is above the third quantile. Freedom score and sunshine hours are classified into two groups by comparing with the mean values: high and low. 
+
+By inspecting the first plot, a high income level generally generates a higher average happiness score, and similarly for high freedom levels. As for sunshine levels, low sunshine levels typically yield a higher happiness score. The low freedom level group possesses a smaller interquartile range than that of the high freedom level group, meaning that its happiness scores has the least variations. Meanwhile, the variation between the high, medium, and low income group and the variation between the high and low sunshine level group is rather similiar. Moreover, there a few outliers with low happiness score in the high, medium, and low income, which suggests that there are still countries in each of these groups that possess a lower happiness score than the average.
+
+
+Through the second plot, we can also infer about the greatness of effects between whether the decrease in happiness that sunshine causes is larger than that of the increase income and freedom causes. We can suggest that perhaps income has a larger effect than sunshine on happiness. This is because the group of low sunshine, low income yields a lower mean happiness score than the group with high sunshine and high income, holding freedom level fixed. As for comparing the effects of freedom level and sunshine level, the result is uncertain. We can see that the group of high income, high sunshine, high freedom yields a higher mean happiness score than the group of high income, low sunshine, low freedom. However, when income is medium leveled, the results do not hold; the high sunshine, high freedom yields a lower mean happiness than that of low sunshine, low freedom group. Obviously, these results may still be biased if some subgroups are under populated. 
+
+
+### 4. 
+
+```{r}
+#generate scatter plot of happiness vs. sunshine 
+g1<- ggplot(data = data, mapping = aes(x = Avg_sunshine, y = Happiness)) + 
+  geom_point(size = 1) + 
+ geom_smooth(method='lm', formula= y ~ x) + labs(x = "Average Sunshine Hours", y = "Happiness Score", title = "Happiness Score vs. Average Sunshine Hours")+ theme(plot.title = element_text(size=10))
+
+#generate scatter plot of happiness vs. Freedom 
+g2<-ggplot(data = data, mapping = aes(x = Freedom, y = Happiness)) + 
+  geom_point(size = 1) + 
+ geom_smooth(method='lm', formula= y ~ x) + labs(x = "Freedom Score", y = "Happiness Score", title = "Happiness Score vs. Freedom Score")+ theme(plot.title = element_text(size=10))
+
+#generate scatter plot of happiness vs. Log_GDP 
+g3 <- ggplot(data = data, mapping = aes(x = Log_GDP, y = Happiness)) + 
+  geom_point(size = 1) + 
+ geom_smooth(method='lm', formula= y ~ x) + labs(x = "Freedom Score", y = "Log GDP Per Capita", title = "Happiness Score vs. Log GDP Per Capita")+ theme(plot.title = element_text(size=10))
+
+#combine plot
+ggarrange(g1, g2, g3, ncol = 2, nrow = 2) 
+```
+
+
+
+```{r}
+#fit linear model 
+model <- lm(data = data, Happiness ~ Log_GDP + Freedom + Avg_sunshine)
+
+#model sumamry
+summary(model)
+```
+
+```{r, results = 'show'}
+
+#create table of model summary
+coef_summary <- data.frame(terms = c("Intercept", "Log GDP per capita", "Freedom Score", "Average Sunshine"), coeff_estimate = c(-2.2981942, 0.6566894, 2.3985811, 0.0000591), significance = c("Yes", "Yes", "Yes", "No"))
+
+
+#display table of linear model summary
+coef_summary %>%
+  setNames(c("Terms", "Coefficient Estimate", "Significance"))  %>%
+  knitr::kable(caption =  "Table 7: Linear Model Coefficients with Siginficance") %>%
+  kable_styling()
+```
+
+
+
+**Explanation:**
+
+In this part, I performed an analysis between happiness scores and the following predictors, freedom score, average sunshine hours, and log GDP per capita. In the scatter plot, we can see that as freedom score and log GDP Per Capita increases, the happiness score increases. There is a positive association. On the other hand, there is a negative association between happiness score and average sunshine hours; as sunshine hours increase, the happiness score decreases. 
+
+
+Trends in the plot is also reflected in the linear model after fitting. We can see that the Beta coefficients for the terms, freedom score and log GDP per capita, are positive, meaning that as freedom score or log GDP per capita increases, happiness increases as well. As a note, a small change in freedom score causes a larger increase in happiness score than that of log GDP per capita, which I suppose is due to the small range of freedom score, 0 to 1. On the other hand, all of the predictors are yielded as significant, except for average sunshine hours. This means that we cannot interpret its association with happiness score. It is insignificant.
+
+
+
+# Conclusion 
+In this report, our primary questions are to see whether happiness increase over time and whether a citizen's happiness is impacted by their economic status, freedom, and sunshine hours received. 
+
+Based on the results of 1, we can see that there is no particular trend in the increase of happiness overtime and it is rather similar over the years. As of the factors that influence happiness, both economic status and freedom increase happiness. On the other hand, sunshine hours does not have a direct impact on happiness, and even if it does, the results shown does not suggest that it increases happiness, but rather decreases. 
+
+
+# Limitations
+
+One major limitation of this study is that the sunshine data set only contains the sunshine hours for particular countries. An amount of countries were removed from the study despite their happiness score was recorded. If more observations and countries are included, the effects of factors that influence happiness can be considered from more parts of the world. Another limitation is that sunshine hours may differ widely across countries if the country is very large. Therefore, the mean sunshine hours in the country may not necessarily be a good representation of sunshine hours that the citizens receive. It is more dependent on the city of the country they are in. Also, although sunshine hours do not differ as much across different years, there are still differences where some years may have slightly higher or less sunshine duration. Therefore, using the same amount of sunshine hours for every year in the data set may still cause some biased results that we need to be careful of. To add on, as mentioned previously, freedom score is right skewed; therefore, this analysis could not be as good for applying on countries with lower freedom, since our data set contains more observations with higher freedom scores.  
+
+
+
