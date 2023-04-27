@@ -1,93 +1,35 @@
 ---
-title: "JSC370 Final Project"
-# author: "Tsai-Ni Lin"
+title: "About the Project"
+author: "Tsai-Ni (Jenny) Lin"
 output: 
     html_document:
         toc: TRUE
         toc_float: TRUE
 ---
 
-This is my JSC370 Final Project website.
 
 ```{r setup, include=FALSE, echo = FALSE}
 knitr::opts_chunk$set(cache=TRUE, echo=FALSE, warning = FALSE, message = FALSE)
 ```
 
 
-```{r,echo=FALSE}
-library(tidyverse)
-library(plotly)
-source('process_COVID_data.R')
-```
-```{r}
-p1_scatter <- cv_states_today %>% 
-  plot_ly(x = ~pop_density, y = ~deathsper100k,
-          type = 'scatter', mode = 'markers', color = ~state,
-          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
-          hoverinfo = 'text',
-          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
-                        deathsper100k, sep=""), sep = "<br>")) %>%
-  layout(title = "Population-normalized COVID-19 deaths vs. population density",
-                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
-         hovermode = "compare")
 
-# filter out "District of Columbia"
-cv_states_today_scatter <- cv_states_today %>% filter(state!="District of Columbia")
+## Project Description 
 
-p2_scatter <- cv_states_today_scatter %>% 
-  plot_ly(x = ~pop_density, y = ~deathsper100k,
-          type = 'scatter', mode = 'markers', color = ~state,
-          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
-          hoverinfo = 'text',
-          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
-                        deathsper100k, sep=""), sep = "<br>")) %>%
-  layout(title = "Population-normalized COVID-19 deaths vs. population density",
-                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
-         hovermode = "compare")
-```
+Happiness is a viral topic in the modern world, as it is ultimately what everyone longs for. However, according to the World Health Organization, 1 in 8 people suffer from mental disorders, and there has been a 25% increase in depression after COVID-19. With this, I am prompted to know more about how happiness has progressed overtime and the factors that influence it. Not only do I hope to explore the effect of sunshine hours, I am also interested in other factors, such as economic status and freedom in a country.
 
 
-```{r}
-## CREATE 2 figures of our own 
-plt_eda_new_cases <- ggplot(cv_states, aes(x = date, y = new_cases, colour = state)) +
-  geom_line() + 
-  theme_minimal()
+Perhaps, with this report, I hope to provide insights to government policies or personal actions that can help improve the well-being of individuals. Therefore, combining these motivations, I hope to look at happiness from three different aspects, physiological needs (economic status), regional factors (sunshine), and emotional needs (freedom). 
 
 
+## Research Question 
 
-plt_eda_new_deaths <- ggplot(cv_states, aes(x = date, y = new_deaths, colour = state)) +
-  geom_line() + 
-  theme_minimal()
+My question of interest is "Do people get happier overtime? Does economic status, freedom to make life choices, and sunshine hours affect people's happiness?".
 
 
-```
+## Access the Project 
 
-## Showing plots {.tabset}
+To view the complete pdf report, click here.
 
-### Figure 1    
+To watch a demonstration of this website, click here.
 
-```{r echo=FALSE}
-p1_scatter
-```
-
-### Figure 2
-
-```{r echo=FALSE}
-p2_scatter
-```
-
-### Figure 3
-
-```{r}
-ggplotly(plt_eda_new_cases)
-
-```
-
-### Figure 4
-
-```{r}
-ggplotly(plt_eda_new_deaths)
-
-```
-
-{-}
