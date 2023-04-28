@@ -5,7 +5,6 @@ output:
     html_document:
         toc: TRUE
         toc_float: TRUE
-        css: ../styles.css
 ---
 
 
@@ -38,14 +37,14 @@ library(ggpubr)
 ```
 
 ```{r}
-data <- readRDS('../data/midterm_data.rds')
+data <- readRDS('data/midterm_data.rds')
 ```
 
 ```{r}
 #load data
-leaflet_marker <- readRDS('../data/leaflet_marker.rds')
-sunshine_by_city <- readRDS('../data/sunshine_by_city.rds')
-sunshine_data <- readRDS('../data/sunshine_data.rds')
+leaflet_marker <- readRDS('data/leaflet_marker.rds')
+sunshine_by_city <- readRDS('data/sunshine_by_city.rds')
+sunshine_data <- readRDS('data/sunshine_data.rds')
 ```
 
 
