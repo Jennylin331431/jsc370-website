@@ -331,12 +331,7 @@ These figures demonstrate the distribution of happiness score and GDP levels, fr
 ggplotly(l1)
 ```
 
-### Sunshine Level
 
-
-```{r}
-ggplotly(l2)
-```
 
 ### Freedom Level
 
@@ -344,6 +339,12 @@ ggplotly(l2)
 ggplotly(l3)
 ```
 
+### Sunshine Level
+
+
+```{r}
+ggplotly(l2)
+```
 
 {-}
 
