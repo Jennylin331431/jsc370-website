@@ -618,7 +618,7 @@ summary_var
 #display variable summary table
 summary_var %>%
   setNames(c("Variable Names", "Type", "Q1", "Median", "Q3", "Mean", "Maximum", "Minimum")) %>%
-  knitr::kable(caption = "Table 4: Summary Statistics for Variables in Merged Data Set") %>%
+  knitr::kable(caption = "Summary Statistics for Variables in Merged Data Set") %>%
   kable_styling(latex_options = "HOLD_position")
 
 ```
@@ -908,7 +908,7 @@ geom_boxplot() + facet_wrap(~sunshine_level + freedom_level) + labs(x = "Income 
 level_plt
 ```
 
-**Note**: For interactive visualizations of Figure 1 and 2, please refer to interactive visualizations [Figure 3](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_3) on the website. 
+**Note**: For interactive visualizations of Figure 3, please refer to interactive visualizations [Figure 3](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_3) on the website. 
 
 
 **Explanation:**
