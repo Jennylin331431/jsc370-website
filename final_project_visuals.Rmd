@@ -324,7 +324,6 @@ ggplotly(p2, tooltip = "text")
 
 These figures demonstrate the distribution of happiness score and GDP levels, freedom levels, and sunshine hours levels. Income Levels are separated in 3 groups: low is below Q1, medium is Q1 - Q3, and high is above Q3, while freedom and sunshine levels are in 2 groups. 
 
-**Note**: Please hit "autoscale" to better visualize the combined interactive boxplot.
 
 ### Income Level
 
@@ -344,17 +343,6 @@ ggplotly(l2)
 ```{r}
 ggplotly(l3)
 ```
-
-
-### Combinations of Levels
-
-```{r}
-ggplotly(level_plt, dynamicTicks = FALSE, height = 1000, width = 800) %>%
-    layout(xaxis = list(autorange = TRUE), yaxis = list(autorange = TRUE), title = list(y = .95, xref = "plot"),
-    margin = list(r= 40, t = 150)
-    )
-```
-
 
 
 {-}
