@@ -30,14 +30,6 @@ Happiness is a viral topic in the modern world, as it is ultimately what everyon
 Perhaps, with this report, I hope to provide insights to government policies or personal actions that can help improve the well-being of individuals. Therefore, combining these motivations, I hope to look at happiness from three different aspects, physiological needs (economic status), regional factors (sunshine), and emotional needs (freedom, love). My question of interest is "Do people get happier overtime? Does economic status, freedom to make life choices, and sunshine hours affect people's happiness?".
 
 
-My first data set is retrieved from a renown source, [World Happiness Report](https://worldhappiness.report/), which is a report written by members of the United Nations Sustainable Development Solutions Network. It makes use of the "Gallup World Poll", a global survey data that consists of over 100 questions including regional specific questions. The report provides insights in how people evaluate their own lives by country. The data set I will be using has records starting from 2005 to 2021, where the happiness score - the national average response to the question of measuring oneself on life ladders - is recorded for more than 150 countries worldwide. Other variables I will be using from the data set are log GDP per capita obtained from World Development Indicators, and the freedom to make life choices and perceptions of corruption, results obtained from Gallup World Poll.
-
-
-The second data set is retrieved from [Wikipedia](https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration), which contains a list of sunshine hours for 391 cities, including the yearly and monthly duration. Records of this data set are compiled from numerous sources.
-
-The third data set I utilized is a world cities data retrieved from [SimpleMaps](https://simplemaps.com/data/world-cities), which have been compiling datasets for prominent international organizations for over 11 years. This data set contains information, such as the population and geographical information (latitude and longitude) for over 40k cities worldwide. This data set is compiled from numerous reliable sources, which includes NASA, National Geospatial-Intelligence Agency, U.S. Census Bureau, and U.S. Geological Survey. This data set will specifically be used with the sunshine data set to find which cities are a better representation for the country in terms of sunshine hours.
-
-
 ```{r, message=FALSE}
 #libraries
 library(rvest)
@@ -99,7 +91,17 @@ pop_data <- read.csv('../data/worldcities.csv')
 # Methods
 
 
+## Data Description 
+
+My first data set is retrieved from a renown source, [World Happiness Report](https://worldhappiness.report/), which is a report written by members of the United Nations Sustainable Development Solutions Network. It makes use of the "Gallup World Poll", a global survey data that consists of over 100 questions including regional specific questions. The report provides insights in how people evaluate their own lives by country. The data set I will be using has records starting from 2005 to 2021, where the happiness score - the national average response to the question of measuring oneself on life ladders - is recorded for more than 150 countries worldwide. Other variables I will be using from the data set are log GDP per capita obtained from World Development Indicators, and the freedom to make life choices and perceptions of corruption, results obtained from Gallup World Poll.
+
+
+The second data set is retrieved from [Wikipedia](https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration), which contains a list of sunshine hours for 391 cities, including the yearly and monthly duration. Records of this data set are compiled from numerous sources.
+
+The third data set I utilized is a world cities data retrieved from [SimpleMaps](https://simplemaps.com/data/world-cities), which have been compiling datasets for prominent international organizations for over 11 years. This data set contains information, such as the population and geographical information (latitude and longitude) for over 40k cities worldwide. This data set is compiled from numerous reliable sources, which includes NASA, National Geospatial-Intelligence Agency, U.S. Census Bureau, and U.S. Geological Survey. This data set will specifically be used with the sunshine data set to find which cities are a better representation for the country in terms of sunshine hours.
+
 ## Data Collection 
+
 The happiness data set is downloaded from the [World Happiness Report](https://worldhappiness.report/ed/2022/#appendices-and-data) website. The process is as easy as a simple download for “Data for Table 2.1”, which is downloaded as an excel file. I later converted to a csv myself. 
 
 
@@ -350,7 +352,7 @@ After merging, I realized that there are still 28 cities that do not have popula
 
 There were only 2 countries that require imputation for population, "Ivory Coast” and "North Macedonia", which are both not in the world cities data set. Therefore, I chose Abidjan and Skopje as the cities to represent sunshine hours after learning they are the capitals in "Ivory Coast” and "North Macedonia" respectively. Afterwards, I only kept the the highest populated cities as a representation for sunshine hours for all the countries.
 
-To see a visualization of the selection of cities as representation for sunshine hours and the sunshine hours data set in each country geographically, please refer to Interactive Visualizations: [Figure 1](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_1). 
+To see a visualization of the selection of cities as representation for sunshine hours and the sunshine hours data set in each country geographically, please refer to Interactive Visualizations: [Figure 1](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_1:). 
 /
 ```{r}
 # cities with the maximum population by country
@@ -389,14 +391,6 @@ drop_cols <- c("Ref.",
 #remove not needed columns 
 sunshine_by_pop <- sunshine_by_pop[,!names(sunshine_by_pop) %in% 
       drop_cols]
-```
-
-
-```{r, results = 'show'}
-# sample table of merged data set
-head(sunshine_by_pop, 5) %>% 
-  knitr::kable(caption = "Country Sunshine Data by Highest Populated cities") %>% 
-  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 
 
@@ -763,7 +757,7 @@ geom_line() +
  p2+ 
 scale_x_continuous(breaks= c(2010, 2015, 2020))
 ```
-Please refer to interactive visualizations [Figure 2](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_2) on the website for this component. 
+Please refer to interactive visualizations [Figure 2](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_2:) on the website for this component. 
 
 
 **Explanation:**
@@ -908,7 +902,7 @@ geom_boxplot() + facet_wrap(~sunshine_level + freedom_level) + labs(x = "Income 
 level_plt
 ```
 
-**Note**: For interactive visualizations of Figure 3, please refer to interactive visualizations [Figure 3](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_3) on the website. 
+**Note**: For interactive visualizations of Figure 3, please refer to interactive visualizations [Figure 3](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_3:) on the website. 
 
 
 **Explanation:**
@@ -972,7 +966,7 @@ model2 <- lm(data = data, Happiness ~ Log_GDP + Freedom)
 summary(model2)
 ```
 
-Please also refer to interactive visualizations [Figure 4](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_4) on the website for this component. 
+Please also refer to interactive visualizations [Figure 4](https://jennylin331431.github.io/jsc370-website/final_project_visuals.html#Figure_4:) on the website for this component. 
 
 
 **Explanation:**
@@ -1283,7 +1277,7 @@ xg_boost_var <- ggplot(importance_matrix, aes(x=reorder(Feature, Gain), y=Gain))
   theme_minimal() + 
   theme(axis.text=element_text(size=10),axis.title = element_text(size=11))
 ```
-```{r, out.width="70%", out.height="70%", fig.align='center', fig.cap="Variable Importance Plot for models, Xg Boosting and Boosting"}
+```{r, out.width="70%", out.height="70%", fig.align='center', fig.cap="Variable Importance Plot for models, XG Boosting and Boosting"}
 ggarrange(boost_var, xg_boost_var,  ncol = 1, nrow = 2)
 ```
 
@@ -1312,9 +1306,9 @@ test_result %>%
 
 **Interpretations:**
 
-From all the models, the variable of importance is in the following order: `Log_GDP`, `Freedom`, `Avg_sunshine`, and `Year`. Out of these factors, the most important factor for a model to make accurate prediction is GDP. The models rely on it alot to make predictions. This could be an indication that it influences our response variable the most. A citizen's income can highly determine their happinesss, followed by freedom, sunshine hours received, and time period. 
+From all the models, the variable of importance is in the following order: `Log_GDP`, `Freedom`, `Avg_sunshine`, and `Year`. Out of these factors, the most important factor for a model to make accurate prediction is GDP; it influences our response variable the most. A citizen's income determines their happiness the most, followed by freedom, sunshine hours received, and time period. 
 
-We can see that the XG Boosting model yields the lowest MSE, while it gives the highest R-squared. This suggests that it is the best model out of the four models. In fact, all of these models perform better than that of the linear model and spline basis fitted in part 5, as they are more complex. This is not surprising since XG Boosting is a higher level implementation of gradient boosting that uses advanced regularization (L1 & L2), and this highly improves its model generalization abilities. With an R-squared of 0.868, approximately 86% of the variability in the Happiness score is explained by the predictors within the XG boosting model. On the other hand, Random Forest yields the highest MSE and lowest R-squared, my best guess for this result is that random forest only chooses a subset of predictors on a split. Therefore, with only 4 predictors in our case, it might be lose accuracy when even less predictors are being used. 
+We can see that the XG Boosting model yields the lowest MSE, while it gives the highest R-squared. This suggests that it is the best model out of the four models. In fact, all of these models perform better than that of the linear model and spline basis fitted in part 5, as they are more complex. This is not surprising since XG Boosting is a higher level implementation of gradient boosting that uses advanced regularization (L1 & L2), and this highly improves its model generalization abilities. With an R-squared of 0.868, approximately 86% of the variability in the happiness score is explained by the predictors within the XG boosting model. On the other hand, Random Forest yields the highest MSE and lowest R-squared. My best guess for this result is that random forest only chooses a subset of predictors on a split, and therefore, with only 4 predictors in our case, it loses accuracy when less predictors are being used. 
 
 
 \newpage 
