@@ -1,0 +1,35 @@
+---
+title: "About the Project"
+author: "Tsai-Ni (Jenny) Lin"
+output: 
+    html_document:
+        toc: TRUE
+        toc_float: TRUE
+---
+
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(cache=TRUE, echo=FALSE, warning = FALSE, message = FALSE)
+```
+
+
+
+## Project Description 
+
+Happiness is a viral topic in the modern world, as it is ultimately what everyone longs for. However, according to the World Health Organization, 1 in 8 people suffer from mental disorders, and there has been a 25% increase in depression after COVID-19. With this, I am prompted to know more about how happiness has progressed overtime and the factors that influence it. Not only do I hope to explore the effect of sunshine hours, I am also interested in other factors, such as economic status and freedom in a country.
+
+
+Perhaps, with this report, I hope to provide insights to government policies or personal actions that can help improve the well-being of individuals. Therefore, combining these motivations, I hope to look at happiness from three different aspects, physiological needs (economic status), regional factors (sunshine), and emotional needs (freedom). 
+
+
+## Research Question 
+
+My question of interest is "Do people get happier overtime? Does economic status, freedom to make life choices, and sunshine hours affect people's happiness?".
+
+
+## Access the Project 
+
+To view the complete pdf report, click here.
+
+To watch a demonstration of this website, click here.
+

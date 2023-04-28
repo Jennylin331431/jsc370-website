@@ -35,7 +35,7 @@ My first data set is retrieved from a renown source, [World Happiness Report](ht
 
 The second data set is retrieved from [Wikipedia](https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration), which contains a list of sunshine hours for 391 cities, including the yearly and monthly duration. Records of this data set are compiled from numerous sources.
 
-The third data set I utilized is a world cities data retrieved from [SimpleMaps](https://simplemaps.com/data/world-cities) which contains information, such as the population and geographical information (latitude and longitude) for over 40k cities worldwide. This data set is compiled from numerous reliable sources, which includes NASA, National Geospatial-Intelligence Agency, U.S. Census Bureau, and U.S. Geological Survey. This data set will specifically be used with the sunshine data set to find which cities are a better representation for the country in terms of sunshine hours.
+The third data set I utilized is a world cities data retrieved from [SimpleMaps](https://simplemaps.com/data/world-cities), which have been compiling datasets for prominent international organizations for over 11 years. This data set contains information, such as the population and geographical information (latitude and longitude) for over 40k cities worldwide. This data set is compiled from numerous reliable sources, which includes NASA, National Geospatial-Intelligence Agency, U.S. Census Bureau, and U.S. Geological Survey. This data set will specifically be used with the sunshine data set to find which cities are a better representation for the country in terms of sunshine hours.
 
 
 ```{r, message=FALSE}
@@ -84,13 +84,13 @@ sunshine_data <- table %>%
 
 ```{r}
 #load happiness score data
-happiness_data<- read.csv('data/DataPanelWHR2021C2.csv')
+happiness_data<- read.csv('../data/DataPanelWHR2021C2.csv')
 ```
 
 
 ```{r}
 #load population data
-pop_data <- read.csv('data/worldcities.csv')
+pop_data <- read.csv('../data/worldcities.csv')
 ```
 
 
@@ -457,9 +457,9 @@ iconSet <- awesomeIconList(
 ```
 
 ```{r}
-saveRDS(leaflet_marker, file = "leaflet_marker.rds")
-saveRDS(sunshine_by_city, file = "sunshine_by_city.rds")
-saveRDS(sunshine_data, file = "sunshine_data.rds")
+# saveRDS(leaflet_marker, file = "leaflet_marker.rds")
+# saveRDS(sunshine_by_city, file = "sunshine_by_city.rds")
+# saveRDS(sunshine_data, file = "sunshine_data.rds")
 ```
 
 
@@ -484,6 +484,10 @@ saveRDS(sunshine_data, file = "sunshine_data.rds")
 ## Data Merging - Happiness Data & Sunshine Data
 
 After merging the data set, I discovered that there are still around 30 countries out of 161 countries which do not have sunshine hours reported. After carefully examining these countries, I recognized that they are less renown countries in the world; therefore, I decided to safely remove them from the merged data set. I also removed the columns that are not my variables of my interest, such as generosity, social support, positive effect ... etc.  I renamed the columns to a more accessible format as well. My final merged data set consists of 1553 observations, and below is a sample table. 
+```{r}
+sunshine_by_pop <- subset(sunshine_by_pop, select = c(Country.name, City, Avg_sunshine))
+sunshine_by_pop
+```
 
 ```{r}
 #merge the dataset
@@ -548,18 +552,17 @@ nrow(data) == nrow(data[!duplicated(df_dups),])
 ```
 
 
+
 ```{r, results = 'show'}
 # sample table of merged data set
-head(data, 5) %>% 
+
+sample_data <- data %>% filter(Year == 2018) 
+head(sample_data , 5) %>% 
   knitr::kable(caption = "Merged Data from World Happiness Report and Sunshine Hours Data") %>% 
-  kable_styling(latex_options=c("scale_down","HOLD_position"))
+  kable_styling(latex_options=c("HOLD_position"))
 ```
 
 
-
-```{r}
-saveRDS(data, "midterm_data.rds")
-```
 
 ## Data Exploration
 
@@ -842,7 +845,7 @@ As a note, I used the maximum of maximum yearly sunshine and minimum of minimum 
 
 
 
-## 3. Distribution of Hppiness Score by Sunshine, Freedom, and Income Levels
+## 3. Distribution of Happiness Score by Sunshine, Freedom, and Income Levels
 
 
 ```{r}
@@ -865,9 +868,18 @@ data3 <- data3 %>% mutate(freedom_level = case_when((Freedom <
 
 ```
 ```{r, fig.cap="Distribution of happiness score based on sunshine Level, freedom level, and income Level (individually)", out.width="80%", out.height="80%", fig.align='center'}
-#income level plt                                              
+
+#reorder x-axis
+data3$income_level <- factor(data3$income_level , levels=c("High", "Medium", "Low"))
+data3$sunshine_level <- factor(data3$sunshine_level , levels=c("High Sunshine Level", "Low Sunshine Level"))
+
+data3$freedom_level <- factor(data3$freedom_level , levels=c("High Freedom Level", "Low Freedom Level"))
+
+#income level plt    
 l1 <- ggplot(data = data3, mapping = aes(x = income_level, y = Happiness)) + 
 geom_boxplot(fill="pink")+ labs(x = "Income Level", y= "Happiness Score") 
+
+
 
 #sunshine_level plt                                              
 l2 <- ggplot(data = data3, mapping = aes(x = sunshine_level, y = Happiness)) + 
@@ -903,7 +915,7 @@ level_plt
 
 Income is separated into three levels: high, medium, and low. A "low" income indicates the log GDP per capita is less than or equal to the first quantile of log GDP per capita, whereas "medium" indicates that it lies between the first and third quantile, and "high" when it is above the third quantile. Freedom score and sunshine hours are classified into two groups by comparing with the mean values: high and low. 
 
-By inspecting figure 3, a high income level generally generates a higher average happiness score, and similarly for high freedom levels. As for sunshine levels, low sunshine levels typically yield a higher happiness score. The low freedom level group possesses a smaller interquartile range than that of the high freedom level group, meaning that its happiness scores has the least variations. Meanwhile, the variation between the high, medium, and low income group and the variation between the high and low sunshine level group is rather similiar. Moreover, there a few outliers with low happiness score in the high, medium, and low income, which suggests that there are still countries in each of these groups that possess a lower happiness score than the average.
+By inspecting interactive visualizations figure 3, a high income level generally generates a higher average happiness score, and similarly for high freedom levels. As for sunshine levels, low sunshine levels typically yield a higher happiness score. The low freedom level group possesses a smaller interquartile range than that of the high freedom level group, meaning that its happiness scores has the least variations. Meanwhile, the variation between the high, medium, and low income group and the variation between the high and low sunshine level group is rather similiar. Moreover, there a few outliers with low happiness score in the high, medium, and low income, which suggests that there are still countries in each of these groups that possess a lower happiness score than the average.
 
 
 Through figure 4, we can also infer about the greatness of effects between whether the decrease in happiness that sunshine causes is larger than that of the increase income and freedom causes. We can suggest that perhaps income has a larger effect than sunshine on happiness. This is because the group of low sunshine, low income yields a lower mean happiness score than the group with high sunshine and high income, holding freedom level fixed. As for comparing the effects of freedom level and sunshine level, the result is uncertain. We can see that the group of high income, high sunshine, high freedom yields a higher mean happiness score than the group of high income, low sunshine, low freedom. However, when income is medium leveled, the results do not hold; the high sunshine, high freedom yields a lower mean happiness than that of low sunshine, low freedom group. Obviously, these results may still be biased if some subgroups are under populated. 
@@ -975,7 +987,7 @@ An adjusted R-squared of 0.7102 has also been reported. This means that 70% of t
 Previously, when I used the average sunshine hours over cities to represent a country's sunshine hours, sunshine hours were deemed to be insignificant and the coefficients for other terms remain extremely similar.  
 
 
-## 5. Cubic spline Model 
+## 5. Cubic Spline Model 
 
 ```{r, out.width="60%", out.height="60%", fig.align='center', fig.cap = "Cubic spline model fit on variable, year"}
 # fit a model by cubic spline
@@ -1017,11 +1029,11 @@ train = data[parts, ]
 test = data[-parts, ]
 
 # #define predictor and response variables in training set
-train_x = data.matrix(train[, c(18, 4, 5,2)])
+train_x = data.matrix(train[, c(2, 4, 5, 6)])
 train_y = train[,3]
 
 #define predictor and response variables in testing set
-test_x = data.matrix(test[, c(18, 4, 5,2)])
+test_x = data.matrix(test[, c(2, 4, 5, 6)])
 test_y = test[,3]
 
 #define final training and testing sets
@@ -1079,10 +1091,9 @@ bagging_model <- randomForest(Happiness ~ Log_GDP + Freedom + Avg_sunshine + Yea
 
 
 
-
 ```
 ```{r}
-pred_y = predict(bagging_model, test[, c(2, 18, 4, 5)])
+pred_y = predict(bagging_model, test[, c(2, 4, 5, 6)])
 result_bagging <-cal_stats(pred_y)
 ```
 
@@ -1106,7 +1117,7 @@ random_forest_model <- randomForest(Happiness ~ Log_GDP + Freedom + Avg_sunshine
 
 
 ```{r}
-pred_y = predict(random_forest_model, test[, c(2, 18, 4, 5)])
+pred_y = predict(random_forest_model, test[, c(2, 4, 5, 6)])
 result_random_forest <- cal_stats(pred_y)
 ```
 
@@ -1164,7 +1175,7 @@ sum_boost <- summary.gbm(boost_final_model,   plotit = FALSE)
 
 ```
 ```{r}
-pred_y = predict.gbm(boost_final_model, test[, c(2,18, 4, 5)])
+pred_y = predict.gbm(boost_final_model, test[, c(2, 4, 5, 6)])
 result_boosting <- cal_stats(pred_y)
 ```
 
@@ -1210,7 +1221,6 @@ pred_y1 = predict(model_xgboost1, xgb_test)
 pred_y2 = predict(model_xgboost2, xgb_test)
 pred_y3 = predict(model_xgboost3, xgb_test)
 pred_y4 = predict(model_xgboost4, xgb_test)
-
 ```
 
 
@@ -1293,7 +1303,7 @@ test_result <- data.frame(method = c("Bagging", "Random Forest", "Boosting", "XG
 ```{r, results = 'show'}
 #display raw sunshine data
 test_result %>% 
-  knitr::kable(caption = "Raw Data from Wikipedia Sunshine Hours",  
+  knitr::kable(caption = "Modelling Test Accuracy Scores",  
                col.names = c("Method",
                            "MSE", "R-squared"
                            )) %>% 

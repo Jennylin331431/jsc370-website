@@ -16,7 +16,7 @@ The main question of interest is "Do people get happier overtime? Does economic 
 
 ## Website
 
-Check this out! https://jennylin331431.github.io/jsc370-website/
+Check this out! https://jennylin331431.github.io/jsc370-website/index.html
 
 ## About the Author
 
