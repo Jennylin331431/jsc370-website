@@ -29,7 +29,7 @@ My question of interest is "Do people get happier overtime? Does economic status
 
 ## Access the Project 
 
-To view the complete pdf report, click here.
+To view the complete pdf report, click [here](https://github.com/Jennylin331431/jsc370-website/blob/master/analysis/jsc370_final.pdf)
 
-To watch a demonstration of this website, click here.
+To watch a video of a walk-through of my analysis results, click [here](https://play.library.utoronto.ca/watch/5df3ef058f1b1e7f681a1ba46652d809).
 
