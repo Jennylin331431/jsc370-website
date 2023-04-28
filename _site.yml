@@ -6,12 +6,10 @@ navbar:
     - text: "Home"
       href: index.html
     - text: "Visualizations"
-      href: final_project_visuals.html
+      href: website-pages/final_project_visuals.html
 output:
   html_document:
     theme: simplex
-    include:
-      after_body: footer.html
     css: styles.css
     
     
