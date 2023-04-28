@@ -150,7 +150,7 @@ plt_smooth2 <- ggplot(
   theme_minimal() + 
   geom_smooth(inherit.aes = FALSE, aes(x = Freedom, y= Happiness)) + 
   geom_point(aes(colour = Country),alpha = 4/10) + 
-labs(x = "Log GDP", y = "Happiness Score", title = " Happiness Score vs. Freedom Score by Country")
+labs(x = "Freedom Score", y = "Happiness Score", title = " Happiness Score vs. Freedom Score by Country")
 ```
 
 
